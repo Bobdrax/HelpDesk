@@ -1,0 +1,8 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import TicketList from '../../components/react/TicketList.jsx';
+---
+
+<MainLayout title="Gestión de Tickets" subtitle="Visualiza, busca y filtra incidentes registrados">
+  <TicketList client:load />
+</MainLayout>

@@ -1,0 +1,8 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import CreateTicketForm from '../../components/react/CreateTicketForm.jsx';
+---
+
+<MainLayout title="Crear Nuevo Ticket" subtitle="Registra y asigna una solicitud de soporte técnico">
+  <CreateTicketForm client:load />
+</MainLayout>

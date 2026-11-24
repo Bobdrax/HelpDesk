@@ -1,0 +1,25 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import TicketDetail from '../../components/react/TicketDetail.jsx';
+import { INITIAL_TICKETS } from '../../data/mockTickets.js';
+
+export async function getStaticPaths() {
+  // Pre-generamos las rutas estáticas para los tickets iniciales y tickets numéricos subsecuentes
+  const initialPaths = INITIAL_TICKETS.map((t) => ({
+    params: { id: t.id },
+  }));
+
+  // Agregamos un rango de IDs previstos para tickets creados dinámicamente
+  const extraPaths = Array.from({ length: 40 }, (_, i) => ({
+    params: { id: `TCK-${1007 + i}` },
+  }));
+
+  return [...initialPaths, ...extraPaths];
+}
+
+const { id } = Astro.params;
+---
+
+<MainLayout title={`Ticket ${id}`} subtitle="Detalle y gestión del incidente de soporte">
+  <TicketDetail ticketId={id} client:load />
+</MainLayout>

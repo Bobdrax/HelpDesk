@@ -1,0 +1,43 @@
+---
+import '../styles/global.css';
+import Sidebar from '../components/astro/Sidebar.astro';
+import Navbar from '../components/astro/Navbar.astro';
+
+interface Props {
+  title: string;
+  subtitle?: string;
+}
+
+const { title, subtitle } = Astro.props;
+const currentPath = Astro.url.pathname;
+---
+
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title} | HelpDesk</title>
+  </head>
+  <body class="h-full flex flex-col antialiased text-slate-800 font-sans selection:bg-blue-500 selection:text-white">
+    <!-- Sidebar de navegación -->
+    <Sidebar currentPath={currentPath} />
+
+    <!-- Área de contenido principal (desplazada a la derecha en pantallas medianas y grandes) -->
+    <div class="md:pl-64 flex flex-col flex-1 min-h-screen">
+      <!-- Navbar superior -->
+      <Navbar title={title} subtitle={subtitle} />
+
+      <!-- Contenido inyectado por cada página -->
+      <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <slot />
+      </main>
+
+      <!-- Pie de página SaaS -->
+      <footer class="border-t border-slate-200 bg-white py-4 px-6 text-center text-xs text-slate-400">
+        <p>HelpDesk Pro v1.0 &copy; {new Date().getFullYear()} - Sistema de Gestión de Incidentes de Soporte Técnico</p>
+      </footer>
+    </div>
+  </body>
+</html>
