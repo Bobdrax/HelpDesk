@@ -27,6 +27,29 @@ npm run build
 npm run preview
 ```
 
+
+
+```markdown
+## Estado del proyecto
+
+### Funcionalidades implementadas
+
+- [x] Context API global para la gestión de tickets (`TicketsContext`)
+- [x] Consumo del contexto con `useContext` en el dashboard
+- [x] Provider montado a nivel de página con hidratación en cliente (`client:load`)
+- [x] Cálculo de métricas derivadas del estado global (totales, porcentajes,
+      prioridades)
+- [x] Actualización del estado de un ticket desde la tabla del dashboard
+- [ ] Gestión del estado con `useReducer`
+- [ ] Servicios HTTP con Axios
+- [ ] Creación de nuevos tickets
+- [ ] Integración con el back-end
+- [ ] Despliegue
+
+### Estructura relevante
+
+
+
 ##  Documentación Completa
 Para una explicación exhaustiva de los conceptos, arquitectura, implementación de hooks e instrucciones de despliegue a GitHub, consulta el archivo:
  [DOCUMENTACION.md](./DOCUMENTACION.md)
