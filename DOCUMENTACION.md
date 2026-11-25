@@ -155,3 +155,60 @@ git remote add origin https://github.com/TU_USUARIO/helpdesk.git
 git branch -M main
 git push -u origin main
 ```
+
+## Integrante 2 — Katy Yulieth Hernández Lambraño
+
+### 1. Implementación de Context API y useContext
+
+Se implementó un contexto global para la gestión de tickets, con el fin de
+evitar el paso de props entre componentes y centralizar el estado de la
+aplicación.
+
+**Archivos involucrados**
+
+| Archivo | Responsabilidad |
+|---|---|
+| `src/context/TicketsContext.jsx` | Define `TicketsContext`, el `TicketsProvider` y el hook de acceso al estado |
+| `src/components/react/DashboardConProvider.jsx` | Envuelve el dashboard con el Provider |
+| `src/components/react/DashboardOverview.jsx` | Consume el contexto mediante `useContext` |
+| `src/pages/index.astro` | Monta el componente con `client:load` |
+
+**Flujo de datos**
+
+1. `index.astro` importa `DashboardConProvider` y lo renderiza con `client:load`,
+   de modo que el componente se hidrata en el cliente.
+2. `DashboardConProvider` envuelve a `DashboardOverview` con `<TicketsProvider>`.
+3. `DashboardOverview` obtiene el estado con:
+   `const { estado } = useContext(TicketsContext);`
+4. Los tickets se leen desde `estado.tickets`, y los cálculos de las tarjetas
+   (total, pendientes, en proceso, resueltos, alta prioridad) se derivan de ese
+   arreglo.
+
+**Problemas encontrados y solución**
+
+- `ReferenceError: DashboardConProvider is not defined`: el componente se usaba
+  en `index.astro` sin haber sido importado. Se creó el archivo
+  `DashboardConProvider.jsx` y se agregó su importación.
+- `TypeError: Cannot destructure property 'estado' of useContext(...) as it is
+  undefined`: el componente se renderizaba sin el Provider por encima, por lo
+  que el contexto llegaba como `undefined`. Se corrigió la estructura para que
+  `DashboardOverview` siempre quede dentro de `<TicketsProvider>`.
+- Ruta de importación incorrecta en `index.astro` (`./context/...` en lugar de
+  `../context/...`).
+
+### 2. Actualización de estado desde la interfaz
+
+Se agregó un selector de estado en la columna **Acción** de la tabla de tickets
+recientes, que permite modificar el estado de cada solicitud directamente desde
+el dashboard.
+
+```jsx
+<select
+  value={ticket.estado}
+  onChange={(e) => cambiarEstado(ticket.id, e.target.value)}
+>
+  <option value={TICKET_STATUSES.PENDIENTE}>Pendiente</option>
+  <option value={TICKET_STATUSES.EN_PROCESO}>En proceso</option>
+  <option value={TICKET_STATUSES.RESUELTO}>Resuelto</option>
+</select>
+
