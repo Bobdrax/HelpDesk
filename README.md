@@ -46,7 +46,23 @@ npm run preview
 - [ ] Integración con el back-end
 - [ ] Despliegue
 
-### Estructura relevante
+## Estructura del proyecto
+
+```
+src/
+├── components/
+│   └── react/
+│       ├── DashboardConProvider.jsx   # Envuelve el dashboard con el Provider
+│       └── DashboardOverview.jsx      # Dashboard; consume el contexto
+├── context/
+│   └── TicketsContext.jsx             # Contexto global de tickets y reducer
+├── data/
+│   └── mockTickets.js                 # Datos simulados y constantes
+├── services/
+│   └── api.js                         # Servicios de comunicación (Axios)
+└── pages/
+    └── index.astro                    # Punto de entrada
+```
 
 
 
