@@ -18,7 +18,7 @@ HelpDesk es una plataforma web desarrollada con **Astro**, **Tailwind CSS** y **
 - [x] Cálculo de métricas derivadas del estado global (totales, porcentajes, prioridades)
 - [x] Actualización del estado de un ticket desde la tabla del dashboard
 - [ ] Servicios HTTP con Axios
-- [ ] Creación de nuevos tickets
+- [x] Creación de nuevos tickets (persistencia local)
 - [ ] Integración con el back-end
 - [ ] Despliegue
 
