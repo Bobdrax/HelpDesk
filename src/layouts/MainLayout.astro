@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import Sidebar from '../components/astro/Sidebar.astro';
 import Navbar from '../components/astro/Navbar.astro';
+import { TicketsProvider } from '../context/TicketsContext.jsx';
 
 interface Props {
   title: string;
@@ -20,7 +21,8 @@ const currentPath = Astro.url.pathname;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title} | HelpDesk</title>
   </head>
-  <body class="h-full flex flex-col antialiased text-slate-800 font-sans selection:bg-blue-500 selection:text-white">
+<body class="h-full flex flex-col antialiased text-slate-800 font-sans selection:bg-blue-500 selection:text-white">
+  <TicketsProvider>
     <!-- Sidebar de navegación -->
     <Sidebar currentPath={currentPath} />
 
@@ -39,5 +41,6 @@ const currentPath = Astro.url.pathname;
         <p>HelpDesk Pro v1.0 &copy; {new Date().getFullYear()} - Sistema de Gestión de Incidentes de Soporte Técnico</p>
       </footer>
     </div>
-  </body>
+  </TicketsProvider>
+</body>
 </html>

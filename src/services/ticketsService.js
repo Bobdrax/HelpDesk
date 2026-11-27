@@ -1,7 +1,7 @@
-import { supabase, isSupabaseConfigured } from '../lib/supabase.js';
+import { axiosClient, isAxiosConfigured } from '../lib/axiosClient.js';
 
-function assertSupabaseConfigured() {
-  if (!isSupabaseConfigured || !supabase) {
+function assertAxiosConfigured() {
+  if (!isAxiosConfigured) {
     throw new Error(
       'Supabase no está configurado. Define PUBLIC_SUPABASE_URL y PUBLIC_SUPABASE_ANON_KEY en tu archivo .env.'
     );
@@ -25,37 +25,46 @@ function mapTicketFromDb(row) {
 }
 
 export async function getTickets() {
-  assertSupabaseConfigured();
-  const { data, error } = await supabase
-    .from('tickets')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .order('id', { ascending: false });
+  assertAxiosConfigured();
 
-  if (error) {
-    throw new Error(`Error al obtener los tickets: ${error.message}`);
+  try {
+    const { data } = await axiosClient.get('/tickets', {
+      params: {
+        select: '*',
+        order: 'created_at.desc,id.desc',
+      },
+    });
+
+    return (data || []).map(mapTicketFromDb);
+  } catch (error) {
+    const mensaje = error.response?.data?.message || error.message;
+    throw new Error(`Error al obtener los tickets: ${mensaje}`);
   }
-
-  return (data || []).map(mapTicketFromDb);
 }
 
+
 export async function getTicketById(id) {
-  assertSupabaseConfigured();
-  const { data, error } = await supabase
-    .from('tickets')
-    .select('*')
-    .eq('id', id)
-    .maybeSingle();
+  assertAxiosConfigured();
 
-  if (error) {
-    throw new Error(`Error al obtener el ticket ${id}: ${error.message}`);
+  try {
+    const { data } = await axiosClient.get('/tickets', {
+      params: {
+        select: '*',
+        id: `eq.${id}`,
+        limit: 1,
+      },
+    });
+
+    return mapTicketFromDb(data?.[0] || null);
+  } catch (error) {
+    const mensaje = error.response?.data?.message || error.message;
+    throw new Error(`Error al obtener el ticket ${id}: ${mensaje}`);
   }
-
-  return mapTicketFromDb(data);
 }
 
 export async function createTicket(ticket) {
-  assertSupabaseConfigured();
+  assertAxiosConfigured();
+
   const payload = {
     solicitante: ticket.solicitante,
     email: ticket.email || null,
@@ -67,31 +76,34 @@ export async function createTicket(ticket) {
     fecha_creacion: ticket.fechaCreacion,
   };
 
-  const { data, error } = await supabase
-    .from('tickets')
-    .insert([payload])
-    .select()
-    .single();
+  try {
+    const { data } = await axiosClient.post('/tickets', payload, {
+      headers: { Prefer: 'return=representation' },
+    });
 
-  if (error) {
-    throw new Error(`Error al crear el ticket: ${error.message}`);
+    return mapTicketFromDb(data?.[0] || null);
+  } catch (error) {
+    const mensaje = error.response?.data?.message || error.message;
+    throw new Error(`Error al crear el ticket: ${mensaje}`);
   }
-
-  return mapTicketFromDb(data);
 }
 
 export async function updateTicketStatus(id, estado) {
-  assertSupabaseConfigured();
-  const { data, error } = await supabase
-    .from('tickets')
-    .update({ estado })
-    .eq('id', id)
-    .select()
-    .single();
+  assertAxiosConfigured();
 
-  if (error) {
-    throw new Error(`Error al actualizar el estado del ticket ${id}: ${error.message}`);
+  try {
+    const { data } = await axiosClient.patch(
+      '/tickets',
+      { estado },
+      {
+        params: { id: `eq.${id}` },
+        headers: { Prefer: 'return=representation' },
+      }
+    );
+
+    return mapTicketFromDb(data?.[0] || null);
+  } catch (error) {
+    const mensaje = error.response?.data?.message || error.message;
+    throw new Error(`Error al actualizar el estado del ticket ${id}: ${mensaje}`);
   }
-
-  return mapTicketFromDb(data);
 }
