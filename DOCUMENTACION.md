@@ -27,31 +27,42 @@ helpdesk/
 ├── astro.config.mjs             # Configuración de Astro, integraciones de React y Tailwind
 ├── package.json                 # Dependencias y scripts de desarrollo/construcción
 ├── tsconfig.json                # Configuración de TypeScript y JSX de React
+├── .env.example                 # Plantilla de variables de entorno para Supabase
 ├── public/                      # Recursos estáticos globales (favicons, SVGs)
-├── src/
-│   ├── components/
-│   │   ├── astro/               # Componentes estructurales de Astro (HTML estático)
-│   │   │   ├── Navbar.astro     # Barra superior con navegación y acciones rápidas
-│   │   │   └── Sidebar.astro    # Menú lateral responsive con control de rutas
-│   │   └── react/               # Componentes dinámicos interactivos de React
-│   │       ├── CreateTicketForm.jsx # Formulario reactivo de registro de tickets
-│   │       ├── DashboardOverview.jsx# Métricas, tabla de recientes y resumen visual
-│   │       ├── TicketDetail.jsx     # Vista detallada y cambio de estado del ticket
-│   │       ├── TicketList.jsx       # Listado general con búsqueda y filtros
-│   │       └── TestComponent.jsx    # Componente de verificación inicial
-│   ├── data/
-│   │   └── mockTickets.js       # Base de datos simulada y persistencia en localStorage
-│   ├── layouts/
-│   │   └── MainLayout.astro     # Plantilla maestra con Navbar, Sidebar y viewport
-│   ├── pages/                   # Sistema de enrutamiento basado en archivos de Astro
-│   │   ├── index.astro          # Ruta "/" (Dashboard Principal)
-│   │   └── tickets/
-│   │       ├── index.astro      # Ruta "/tickets" (Catálogo y listado de tickets)
-│   │       ├── crear.astro      # Ruta "/tickets/crear" (Formulario de creación)
-│   │       └── [id].astro       # Ruta "/tickets/[id]" (Detalle dinámico de ticket)
-│   └── styles/
-│       └── global.css           # Hoja de estilos global (@import "tailwindcss")
+├── supabase/
+│   └── schema.sql               # Script SQL de la tabla tickets, secuencia y políticas RLS
+└── src/
+    ├── components/
+    │   ├── astro/               # Componentes estructurales de Astro (HTML estático)
+    │   │   ├── Navbar.astro     # Barra superior con navegación y acciones rápidas
+    │   │   └── Sidebar.astro    # Menú lateral responsive con control de rutas
+    │   └── react/               # Componentes dinámicos interactivos de React
+    │       ├── DashboardConProvider.jsx # Envuelve el dashboard con el Provider
+    │       ├── DashboardOverview.jsx    # Métricas, tabla de recientes y resumen visual
+    │       ├── TicketDetail.jsx         # Vista detallada y cambio de estado del ticket
+    │       ├── TicketList.jsx           # Listado general con búsqueda y filtros
+    │       └── CreateTicketForm.jsx     # Formulario reactivo de registro de tickets
+    ├── context/
+    │   └── TicketsContext.jsx   # Contexto global de tickets y reducer
+    ├── data/
+    │   └── mockTickets.js       # Datos simulados y persistencia en localStorage
+    ├── layouts/
+    │   └── MainLayout.astro     # Plantilla maestra con Navbar, Sidebar y viewport
+    ├── lib/
+    │   ├── axiosClient.js       # Instancia de Axios con baseURL y timeouts
+    │   └── supabase.js          # Cliente de Supabase y bandera isSupabaseConfigured
+    ├── pages/                   # Sistema de enrutamiento basado en archivos de Astro
+    │   ├── index.astro          # Ruta "/" (Dashboard Principal)
+    │   └── tickets/
+    │       ├── index.astro      # Ruta "/tickets" (Catálogo y listado de tickets)
+    │       ├── crear.astro      # Ruta "/tickets/crear" (Formulario de creación)
+    │       └── [id].astro       # Ruta "/tickets/[id]" (Detalle dinámico de ticket)
+    ├── services/
+    │   └── ticketsService.js    # Capa de acceso a datos (Supabase)
+    └── styles/
+        └── global.css           # Hoja de estilos global (@import "tailwindcss")
 ```
+
 
 ---
 
@@ -131,7 +142,7 @@ npm run build
 npm run preview
 ```
 
-El servidor local se ejecuta típicamente en: `http://localhost:4321`.
+El servidor local se ejecuta típicamente en: `http://localhost:4322`.
 
 ---
 
@@ -218,6 +229,34 @@ el dashboard.
 
 ## Integración de Backend con Supabase
 
+
+La aplicación consume los datos desde **Supabase** mediante la capa de servicios definida en `src/services/ticketsService.js`, que centraliza las operaciones sobre los tickets y utiliza el cliente configurado en `src/lib/supabase.js`.
+
+Los componentes de React ya no leen de `mockTickets.js`: obtienen la información de la tabla `public.tickets` en Supabase, lo que permite que los tickets creados se conserven y se reflejen en el dashboard y en el listado sin depender de datos simulados.
+
+| Elemento | Estado |
+| --- | --- |
+| Capa de servicios con Supabase | Implementada |
+| Variables de entorno (`PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY`) | Implementada |
+| Tabla `public.tickets` con RLS | Implementada |
+| Consulta, creación y actualización de tickets | Implementada |
+| Autenticación de usuarios | Pendiente |
+| Despliegue en producción | Pendiente |
+
+
+La integración definitiva con el back-end requiere:
+
+| Elemento | Estado |
+| --- | --- |
+| Capa de servicios con Axios | Implementada |
+| Variables de entorno para la URL de la API | Pendiente |
+| Endpoints REST disponibles | Pendiente |
+| Sustitución de datos simulados por datos del servidor | Pendiente |
+| Manejo de errores y estados de carga en producción | Pendiente |
+
+Cuando el back-end esté disponible, bastará con configurar la URL base en el archivo de entorno y reemplazar las funciones de `ticketsService.js` por las llamadas reales, sin modificar los componentes de la interfaz.
+
+
 ### 1. Arquitectura de Conexión
 Los componentes interactivos de React se conectan directamente a **Supabase** desde el cliente utilizando `@supabase/supabase-js` y variables de entorno públicas de Astro (`PUBLIC_SUPABASE_URL` y `PUBLIC_SUPABASE_ANON_KEY`), manteniendo el modo estático de Astro y el acceso libre sin autenticación.
 
@@ -251,3 +290,17 @@ Los componentes interactivos de React se conectan directamente a **Supabase** de
    PUBLIC_SUPABASE_ANON_KEY=tu-anon-key-aqui
    ```
 3. Iniciar el servidor de desarrollo (`npm run dev`).
+
+### Endpoints REST equivalentes al servicio de tickets
+
+| Método HTTP | Endpoint | Funcionalidad |
+| --- | --- | --- |
+| GET | `/api/tickets` | Consultar todos los tickets |
+| GET | `/api/tickets/{id}` | Consultar un ticket específico |
+| POST | `/api/tickets` | Registrar un nuevo ticket |
+| PUT | `/api/tickets/{id}` | Actualizar un ticket |
+| PATCH | `/api/tickets/{id}` | Actualizar parcialmente un ticket |
+| DELETE | `/api/tickets/{id}` | Eliminar un ticket |
+
+Estos endpoints representan el contrato que expondría un back-end REST propio. En la implementación actual, la misma funcionalidad se resuelve con las operaciones de Supabase descritas en la sección anterior.
+
