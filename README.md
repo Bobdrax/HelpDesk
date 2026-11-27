@@ -10,43 +10,54 @@ HelpDesk es una plataforma web desarrollada con **Astro**, **Tailwind CSS** y **
 
 ## Estado del Proyecto
 
-### Funcionalidades implementadas
-- [x] Context API global para la gestión de tickets (`TicketsContext`)
-- [x] Consumo del contexto con `useContext` en el dashboard
-- [x] Provider montado a nivel de página con hidratación en cliente (`client:load`)
-- [x] Gestión del estado con `useReducer` (acciones: cargar, agregar, actualizar, cambiar estado)
-- [x] Cálculo de métricas derivadas del estado global (totales, porcentajes, prioridades)
-- [x] Actualización del estado de un ticket desde la tabla del dashboard
-- [ ] Servicios HTTP con Axios
-- [x] Creación de nuevos tickets (persistencia local)
-- [ ] Integración con el back-end
-- [ ] Despliegue
+## Checklist del proyecto
+
+- [x] Estructura base del proyecto con Astro
+- [x] Componentes estructurales (Sidebar y Navbar)
+- [x] Componentes interactivos en React
+- [x] Estado global con Context API y useReducer
+- [x] Hook personalizado para consumir el contexto
+- [x] Listado de tickets con búsqueda y filtros
+- [x] Formulario de creación de tickets
+- [x] Vista de detalle y cambio de estado
+- [x] Rutas y navegación con Astro
+- [x] Capa de servicios HTTP preparada con Axios
+- [x] Persistencia local de datos simulados
+- [x] Integración con el back-end (Supabase)
+- [ ] Despliegue en producción
+
 
 ## Estructura del Proyecto
 
 ```
 src/
 ├── components/
-│   ├── astro/                         # Componentes estructurales estáticos
+│   ├── astro/                  # Componentes estructurales estáticos
 │   │   ├── Sidebar.astro
 │   │   └── Navbar.astro
-│   └── react/                         # Componentes interactivos
+│   └── react/                  # Componentes interactivos
 │       ├── DashboardConProvider.jsx   # Envuelve el dashboard con el Provider
-│       └── DashboardOverview.jsx      # Dashboard; consume el contexto
+│       ├── DashboardOverview.jsx      # Dashboard; consume el contexto
+│       ├── TicketList.jsx             # Listado con búsqueda y filtros
+│       ├── CreateTicketForm.jsx       # Formulario de creación
+│       └── TicketDetail.jsx           # Detalle y cambio de estado
 ├── context/
-│   └── TicketsContext.jsx             # Contexto global de tickets y reducer
+│   └── TicketsContext.jsx      # Contexto global de tickets y reducer
 ├── data/
-│   └── mockTickets.js                 # Datos simulados y persistencia en cliente
+│   └── mockTickets.js          # Datos simulados y persistencia en cliente
+├── lib/
+│   └── axiosClient.js          # Instancia de Axios con baseURL y timeouts
 ├── layouts/
-│   └── MainLayout.astro               # Plantilla principal
-├── pages/                             # Rutas del sistema
-│   ├── index.astro                    # Dashboard principal
-│   ├── tickets/
-│   │   ├── index.astro                # Listado de tickets
-│   │   ├── crear.astro                # Formulario de creación
-│   │   └── [id].astro                 # Detalle del ticket
+│   └── MainLayout.astro        # Plantilla principal
+├── pages/                      # Rutas del sistema
+│   ├── index.astro             # Dashboard principal
+│   └── tickets/
+│       ├── index.astro         # Listado de tickets
+│       ├── crear.astro         # Formulario de creación
+│       └── [id].astro          # Detalle del ticket
 └── services/
-    └── api.js                         # Servicios de comunicación (Axios)
+    └── ticketsService.js       # Capa de acceso a datos (Axios)
+
 ```
 
 ## Arquitectura del Estado
