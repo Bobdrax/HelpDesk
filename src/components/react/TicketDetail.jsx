@@ -1,35 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { getStoredTickets, saveStoredTickets, TICKET_STATUSES } from '../../data/mockTickets.js';
+import { TICKET_STATUSES } from '../../data/mockTickets.js';
+import { getTicketById, updateTicketStatus } from '../../services/ticketsService.js';
 
 export default function TicketDetail({ ticketId }) {
   const [ticket, setTicket] = useState(null);
   const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(null);
   const [nuevoEstado, setNuevoEstado] = useState('');
+  const [actualizando, setActualizando] = useState(false);
   const [notificacion, setNotificacion] = useState(null);
 
-  // useEffect para buscar el ticket en la persistencia local o datos base
+  // useEffect para consultar el ticket en Supabase
   useEffect(() => {
-    const todos = getStoredTickets();
-    const encontrado = todos.find((t) => t.id === ticketId);
-    if (encontrado) {
-      setTicket(encontrado);
-      setNuevoEstado(encontrado.estado);
+    let activo = true;
+    async function cargarTicket() {
+      try {
+        setCargando(true);
+        setError(null);
+        const encontrado = await getTicketById(ticketId);
+        if (activo && encontrado) {
+          setTicket(encontrado);
+          setNuevoEstado(encontrado.estado);
+        }
+      } catch (err) {
+        if (activo) setError(err.message || 'Error al cargar el ticket.');
+      } finally {
+        if (activo) setCargando(false);
+      }
     }
-    setCargando(false);
+    cargarTicket();
+    return () => {
+      activo = false;
+    };
   }, [ticketId]);
 
-  const handleCambiarEstado = (e) => {
+  const handleCambiarEstado = async (e) => {
     const estadoActualizado = e.target.value;
+    const estadoAnterior = nuevoEstado;
     setNuevoEstado(estadoActualizado);
+    setActualizando(true);
 
-    const todos = getStoredTickets();
-    const listaActualizada = todos.map((t) =>
-      t.id === ticketId ? { ...t, estado: estadoActualizado } : t
-    );
-    saveStoredTickets(listaActualizada);
-    setTicket((prev) => ({ ...prev, estado: estadoActualizado }));
-    setNotificacion(`Estado actualizado a "${estadoActualizado}"`);
-    setTimeout(() => setNotificacion(null), 3000);
+    try {
+      const ticketActualizado = await updateTicketStatus(ticketId, estadoActualizado);
+      setTicket(ticketActualizado);
+      setNotificacion(`Estado actualizado a "${estadoActualizado}"`);
+      setTimeout(() => setNotificacion(null), 3000);
+    } catch (err) {
+      setNuevoEstado(estadoAnterior);
+      setError(err.message || 'No se pudo actualizar el estado.');
+    } finally {
+      setActualizando(false);
+    }
   };
 
   const getPriorityBadge = (prioridad) => {
@@ -62,6 +83,15 @@ export default function TicketDetail({ ticketId }) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-2xl text-sm max-w-xl mx-auto">
+        <p className="font-bold mb-1">Error al consultar Supabase</p>
+        <p>{error}</p>
       </div>
     );
   }
@@ -145,7 +175,8 @@ export default function TicketDetail({ ticketId }) {
               id="cambiar-estado"
               value={nuevoEstado}
               onChange={handleCambiarEstado}
-              className="text-xs font-bold px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              disabled={actualizando}
+              className="text-xs font-bold px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
             >
               <option value={TICKET_STATUSES.PENDIENTE}>Pendiente</option>
               <option value={TICKET_STATUSES.EN_PROCESO}>En proceso</option>

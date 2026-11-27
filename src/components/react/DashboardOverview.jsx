@@ -1,16 +1,33 @@
-import { useState, useContext } from 'react';
-import api from '../../services/api.js';
-import { TICKET_STATUSES, TICKET_PRIORITIES, getStoredTickets } from '../../data/mockTickets.js';
-import { TicketsContext, ACCIONES } from '../../context/TicketsContext.jsx';
+import React, { useState, useEffect } from 'react';
+import { TICKET_STATUSES, TICKET_PRIORITIES } from '../../data/mockTickets.js';
+import { getTickets } from '../../services/ticketsService.js';
 
 export default function DashboardOverview() {
+  // Estado local para los tickets gestionado con useState
+  const [tickets, setTickets] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Los tickets vienen del contexto global, no de un estado local
-  const { estado, dispatch } = useContext(TicketsContext);
-  const tickets = estado.tickets;
-  const [cargando, setCargando] = useState(false);
-
-  
+  // useEffect para cargar los tickets desde Supabase al montar el componente
+  useEffect(() => {
+    let activo = true;
+    async function cargarTickets() {
+      try {
+        setCargando(true);
+        setError(null);
+        const datos = await getTickets();
+        if (activo) setTickets(datos);
+      } catch (err) {
+        if (activo) setError(err.message || 'No se pudieron cargar los tickets.');
+      } finally {
+        if (activo) setCargando(false);
+      }
+    }
+    cargarTickets();
+    return () => {
+      activo = false;
+    };
+  }, []);
 
   // Cálculos estadísticos derivados del estado
   const totalTickets = tickets.length;
@@ -63,12 +80,14 @@ export default function DashboardOverview() {
     );
   }
 
-  const cambiarEstado = (id, nuevoEstado) => {
-    dispatch({
-      type: ACCIONES.CAMBIAR_ESTADO,
-      payload: { id, estado: nuevoEstado },
-    });
-  };
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-2xl text-sm">
+        <p className="font-bold mb-1">Error de conexión con el backend</p>
+        <p>{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -227,8 +246,7 @@ export default function DashboardOverview() {
                 <th className="py-3 px-6">Prioridad</th>
                 <th className="py-3 px-6">Estado</th>
                 <th className="py-3 px-6">Fecha</th>
-                <th className="py-3 px-6 ">Acción</th>
-                <th className="py-3 px-6 ">Detalle</th>
+                <th className="py-3 px-6 text-right">Acción</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -270,27 +288,16 @@ export default function DashboardOverview() {
                   <td className="py-3.5 px-6 text-xs text-slate-500 whitespace-nowrap">
                     {ticket.fechaCreacion}
                   </td>
-                      <td className="py-3.5 px-6 text-right whitespace-nowrap">
-                        <select
-                          value={ticket.estado}
-                          onChange={(e) => cambiarEstado(ticket.id, e.target.value)}
-                          className="text-xs border border-slate-300 rounded-md px-2 py-1 mr-3 align-middle"
-                        >
-                          <option value={TICKET_STATUSES.PENDIENTE}>Pendiente</option>
-                          <option value={TICKET_STATUSES.EN_PROCESO}>En proceso</option>
-                          <option value={TICKET_STATUSES.RESUELTO}>Resuelto</option>
-                        </select>
-                        </td>
-                          <td className="py-3.5 px-6 text-right">
-                            <a
-                              href={`/tickets/${ticket.id}`}
-                              className="inline-flex items-center text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline"
-                            >
-                              Detalle
-                            </a>
-                          </td>
+                  <td className="py-3.5 px-6 text-right">
+                    <a
+                      href={`/tickets/${ticket.id}`}
+                      className="inline-flex items-center text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                      Detalle
+                    </a>
+                  </td>
                 </tr>
-              ))}  
+              ))}
             </tbody>
           </table>
         </div>
@@ -298,4 +305,3 @@ export default function DashboardOverview() {
     </div>
   );
 }
-
