@@ -10,7 +10,7 @@ export async function getStaticPaths() {
   }));
 
   // Agregamos un rango de IDs previstos para tickets creados dinámicamente
-  const extraPaths = Array.from({ length: 40 }, (_, i) => ({
+  const extraPaths = Array.from({ length: 200 }, (_, i) => ({
     params: { id: `TCK-${1007 + i}` },
   }));
 

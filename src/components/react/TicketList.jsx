@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getStoredTickets, TICKET_STATUSES, TICKET_PRIORITIES, TICKET_CATEGORIES } from '../../data/mockTickets.js';
+import { TICKET_STATUSES, TICKET_PRIORITIES } from '../../data/mockTickets.js';
+import { getTickets } from '../../services/ticketsService.js';
 
 export default function TicketList() {
   // Estados para gestionar la lista de tickets y los filtros de búsqueda
@@ -8,12 +9,27 @@ export default function TicketList() {
   const [filtroEstado, setFiltroEstado] = useState('TODOS');
   const [filtroPrioridad, setFiltroPrioridad] = useState('TODAS');
   const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(null);
 
-  // useEffect para cargar los datos en el montaje del componente
+  // useEffect para cargar los datos desde Supabase en el montaje del componente
   useEffect(() => {
-    const data = getStoredTickets();
-    setTickets(data);
-    setCargando(false);
+    let activo = true;
+    async function cargarTickets() {
+      try {
+        setCargando(true);
+        setError(null);
+        const data = await getTickets();
+        if (activo) setTickets(data);
+      } catch (err) {
+        if (activo) setError(err.message || 'No se pudieron cargar los tickets.');
+      } finally {
+        if (activo) setCargando(false);
+      }
+    }
+    cargarTickets();
+    return () => {
+      activo = false;
+    };
   }, []);
 
   // Filtrado reactivo en tiempo real utilizando useState
@@ -72,6 +88,15 @@ export default function TicketList() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-2xl text-sm">
+        <p className="font-bold mb-1">Error al cargar tickets desde Supabase</p>
+        <p>{error}</p>
       </div>
     );
   }

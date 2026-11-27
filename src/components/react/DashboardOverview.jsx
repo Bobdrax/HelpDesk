@@ -1,17 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { getStoredTickets, TICKET_STATUSES, TICKET_PRIORITIES } from '../../data/mockTickets.js';
+import { TICKET_STATUSES, TICKET_PRIORITIES } from '../../data/mockTickets.js';
+import { getTickets } from '../../services/ticketsService.js';
 
 export default function DashboardOverview() {
   // Estado local para los tickets gestionado con useState
   const [tickets, setTickets] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(null);
 
-  // useEffect para sincronizar y cargar los datos simulados/almacenados en el cliente
+  // useEffect para cargar los tickets desde Supabase al montar el componente
   useEffect(() => {
-    // Simulamos la carga inicial (arquitectura lista para API/Backend posterior)
-    const datos = getStoredTickets();
-    setTickets(datos);
-    setCargando(false);
+    let activo = true;
+    async function cargarTickets() {
+      try {
+        setCargando(true);
+        setError(null);
+        const datos = await getTickets();
+        if (activo) setTickets(datos);
+      } catch (err) {
+        if (activo) setError(err.message || 'No se pudieron cargar los tickets.');
+      } finally {
+        if (activo) setCargando(false);
+      }
+    }
+    cargarTickets();
+    return () => {
+      activo = false;
+    };
   }, []);
 
   // Cálculos estadísticos derivados del estado
@@ -61,6 +76,15 @@ export default function DashboardOverview() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-2xl text-sm">
+        <p className="font-bold mb-1">Error de conexión con el backend</p>
+        <p>{error}</p>
       </div>
     );
   }

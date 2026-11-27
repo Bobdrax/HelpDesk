@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
-  getStoredTickets,
-  saveStoredTickets,
   TICKET_STATUSES,
   TICKET_PRIORITIES,
   TICKET_CATEGORIES,
 } from '../../data/mockTickets.js';
+import { createTicket } from '../../services/ticketsService.js';
 
 export default function CreateTicketForm() {
   // 1. Estados controlados mediante useState para cada campo del formulario
@@ -22,6 +21,7 @@ export default function CreateTicketForm() {
   const [errores, setErrores] = useState({});
   const [enviando, setEnviando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState(null);
+  const [errorEnvio, setErrorEnvio] = useState(null);
 
   // 2. useEffect para inicializar la fecha de creación con la fecha actual del sistema
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function CreateTicketForm() {
   };
 
   // Manejador del envío del formulario
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validarFormulario()) {
@@ -68,44 +68,48 @@ export default function CreateTicketForm() {
     }
 
     setEnviando(true);
+    setErrorEnvio(null);
 
-    // Obtener los tickets actuales para generar un ID incremental
-    const ticketsExistentes = getStoredTickets();
-    const proximoNumero = 1000 + ticketsExistentes.length + 1;
-    const nuevoId = `TCK-${proximoNumero}`;
+    try {
+      const nuevoTicket = await createTicket({
+        solicitante: solicitante.trim(),
+        email: email.trim() || `${solicitante.toLowerCase().replace(/\s+/g, '.')}@empresa.com`,
+        titulo: titulo.trim(),
+        descripcion: descripcion.trim(),
+        categoria,
+        prioridad,
+        estado,
+        fechaCreacion,
+      });
 
-    const nuevoTicket = {
-      id: nuevoId,
-      solicitante: solicitante.trim(),
-      email: email.trim() || `${solicitante.toLowerCase().replace(/\s+/g, '.')}@empresa.com`,
-      titulo: titulo.trim(),
-      descripcion: descripcion.trim(),
-      categoria,
-      prioridad,
-      estado,
-      fechaCreacion,
-    };
+      setMensajeExito(`¡Ticket ${nuevoTicket.id} registrado correctamente!`);
 
-    // Guardar nuevo ticket en la persistencia local simulada
-    const listaActualizada = [nuevoTicket, ...ticketsExistentes];
-    saveStoredTickets(listaActualizada);
-
-    setEnviando(false);
-    setMensajeExito(`¡Ticket ${nuevoId} registrado correctamente!`);
-
-    // Limpiar formulario excepto fecha
-    setSolicitante('');
-    setEmail('');
-    setTitulo('');
-    setDescripcion('');
-    setCategoria(TICKET_CATEGORIES[0]);
-    setPrioridad(TICKET_PRIORITIES.MEDIA);
-    setEstado(TICKET_STATUSES.PENDIENTE);
-    setErrores({});
+      // Limpiar formulario excepto fecha
+      setSolicitante('');
+      setEmail('');
+      setTitulo('');
+      setDescripcion('');
+      setCategoria(TICKET_CATEGORIES[0]);
+      setPrioridad(TICKET_PRIORITIES.MEDIA);
+      setEstado(TICKET_STATUSES.PENDIENTE);
+      setErrores({});
+    } catch (err) {
+      setErrorEnvio(err.message || 'No se pudo registrar el ticket en Supabase.');
+    } finally {
+      setEnviando(false);
+    }
   };
 
   return (
     <div className="max-w-3xl mx-auto">
+      {/* Alerta de error al enviar */}
+      {errorEnvio && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-sm">
+          <p className="font-bold mb-1">No se pudo guardar el ticket</p>
+          <p>{errorEnvio}</p>
+        </div>
+      )}
+
       {/* Alerta de confirmación de éxito */}
       {mensajeExito && (
         <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-start justify-between gap-3 animate-fadeIn">

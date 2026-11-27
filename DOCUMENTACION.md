@@ -212,3 +212,42 @@ el dashboard.
   <option value={TICKET_STATUSES.RESUELTO}>Resuelto</option>
 </select>
 
+```
+
+---
+
+## Integración de Backend con Supabase
+
+### 1. Arquitectura de Conexión
+Los componentes interactivos de React se conectan directamente a **Supabase** desde el cliente utilizando `@supabase/supabase-js` y variables de entorno públicas de Astro (`PUBLIC_SUPABASE_URL` y `PUBLIC_SUPABASE_ANON_KEY`), manteniendo el modo estático de Astro y el acceso libre sin autenticación.
+
+### 2. Archivos Agregados y Modificados
+
+| Archivo | Responsabilidad |
+|---|---|
+| `supabase/schema.sql` | Script SQL con la secuencia `ticket_id_seq`, la tabla `public.tickets`, políticas RLS de acceso público y los 6 tickets iniciales de prueba. |
+| `.env.example` | Plantilla de variables de entorno requeridas para conectar con Supabase. |
+| `src/lib/supabase.js` | Inicialización del cliente `supabase` y bandera `isSupabaseConfigured`. |
+| `src/services/ticketsService.js` | Capa de acceso a datos (`getTickets`, `getTicketById`, `createTicket`, `updateTicketStatus`) y mapeo `fecha_creacion` ↔ `fechaCreacion`. |
+| `src/components/react/DashboardOverview.jsx` | Carga asíncrona de métricas y tickets recientes desde `getTickets()` con manejo de carga y error. |
+| `src/components/react/TicketList.jsx` | Carga asíncrona del catálogo de tickets desde `getTickets()` manteniendo los filtros en tiempo real. |
+| `src/components/react/CreateTicketForm.jsx` | Registro de nuevos tickets en Supabase mediante `createTicket()`. |
+| `src/components/react/TicketDetail.jsx` | Consulta individual con `getTicketById()` y actualización de estado con `updateTicketStatus()`. |
+| `src/pages/tickets/[id].astro` | Amplía el rango estático de rutas `TCK-1001` a `TCK-1206` para tickets creados dinámicamente. |
+
+### 3. Esquema de Base de Datos y RLS (`supabase/schema.sql`)
+* **Tabla `public.tickets`**:
+  * `id` (`text`, PK): generado automáticamente con formato `'TCK-' || nextval('public.ticket_id_seq')::text` iniciando en `1007`.
+  * `solicitante`, `email`, `titulo`, `descripcion`, `categoria`, `prioridad`, `estado`, `fecha_creacion`, `created_at`.
+  * Restricciones `CHECK` para `prioridad` (`Baja`, `Media`, `Alta`, `Urgente`) y `estado` (`Pendiente`, `En proceso`, `Resuelto`).
+* **Row Level Security (RLS)**:
+  * Habilitado en `public.tickets` con políticas abiertas (`SELECT`, `INSERT`, `UPDATE`) para los roles `anon` y `authenticated`, permitiendo operar sin inicio de sesión.
+
+### 4. Pasos de Configuración
+1. Ejecutar el contenido de `supabase/schema.sql` en el **SQL Editor** del proyecto en Supabase.
+2. Copiar `.env.example` a `.env` en la raíz del proyecto y completar con la URL y la Anon Key de Supabase:
+   ```env
+   PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
+   PUBLIC_SUPABASE_ANON_KEY=tu-anon-key-aqui
+   ```
+3. Iniciar el servidor de desarrollo (`npm run dev`).
