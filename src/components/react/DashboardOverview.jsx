@@ -1,18 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { getStoredTickets, TICKET_STATUSES, TICKET_PRIORITIES } from '../../data/mockTickets.js';
+import { useState, useContext } from 'react';
+import api from '../../services/api.js';
+import { TICKET_STATUSES, TICKET_PRIORITIES, getStoredTickets } from '../../data/mockTickets.js';
+import { TicketsContext, ACCIONES } from '../../context/TicketsContext.jsx';
 
 export default function DashboardOverview() {
-  // Estado local para los tickets gestionado con useState
-  const [tickets, setTickets] = useState([]);
-  const [cargando, setCargando] = useState(true);
 
-  // useEffect para sincronizar y cargar los datos simulados/almacenados en el cliente
-  useEffect(() => {
-    // Simulamos la carga inicial (arquitectura lista para API/Backend posterior)
-    const datos = getStoredTickets();
-    setTickets(datos);
-    setCargando(false);
-  }, []);
+  // Los tickets vienen del contexto global, no de un estado local
+  const { estado, dispatch } = useContext(TicketsContext);
+  const tickets = estado.tickets;
+  const [cargando, setCargando] = useState(false);
+
+  
 
   // Cálculos estadísticos derivados del estado
   const totalTickets = tickets.length;
@@ -64,6 +62,13 @@ export default function DashboardOverview() {
       </div>
     );
   }
+
+  const cambiarEstado = (id, nuevoEstado) => {
+    dispatch({
+      type: ACCIONES.CAMBIAR_ESTADO,
+      payload: { id, estado: nuevoEstado },
+    });
+  };
 
   return (
     <div className="space-y-8">
@@ -222,7 +227,8 @@ export default function DashboardOverview() {
                 <th className="py-3 px-6">Prioridad</th>
                 <th className="py-3 px-6">Estado</th>
                 <th className="py-3 px-6">Fecha</th>
-                <th className="py-3 px-6 text-right">Acción</th>
+                <th className="py-3 px-6 ">Acción</th>
+                <th className="py-3 px-6 ">Detalle</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -264,16 +270,27 @@ export default function DashboardOverview() {
                   <td className="py-3.5 px-6 text-xs text-slate-500 whitespace-nowrap">
                     {ticket.fechaCreacion}
                   </td>
-                  <td className="py-3.5 px-6 text-right">
-                    <a
-                      href={`/tickets/${ticket.id}`}
-                      className="inline-flex items-center text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline"
-                    >
-                      Detalle
-                    </a>
-                  </td>
+                      <td className="py-3.5 px-6 text-right whitespace-nowrap">
+                        <select
+                          value={ticket.estado}
+                          onChange={(e) => cambiarEstado(ticket.id, e.target.value)}
+                          className="text-xs border border-slate-300 rounded-md px-2 py-1 mr-3 align-middle"
+                        >
+                          <option value={TICKET_STATUSES.PENDIENTE}>Pendiente</option>
+                          <option value={TICKET_STATUSES.EN_PROCESO}>En proceso</option>
+                          <option value={TICKET_STATUSES.RESUELTO}>Resuelto</option>
+                        </select>
+                        </td>
+                          <td className="py-3.5 px-6 text-right">
+                            <a
+                              href={`/tickets/${ticket.id}`}
+                              className="inline-flex items-center text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+                            >
+                              Detalle
+                            </a>
+                          </td>
                 </tr>
-              ))}
+              ))}  
             </tbody>
           </table>
         </div>
@@ -281,3 +298,4 @@ export default function DashboardOverview() {
     </div>
   );
 }
+

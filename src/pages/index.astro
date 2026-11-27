@@ -1,9 +1,8 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
-import DashboardOverview from '../components/react/DashboardOverview.jsx';
+import DashboardConProvider from '../components/react/DashboardConProvider.jsx';
 ---
 
 <MainLayout title="Dashboard Principal" subtitle="Resumen ejecutivo y métricas de soporte técnico">
-  <!-- Componente React del Dashboard con hidratación en cliente -->
-  <DashboardOverview client:load />
+  <DashboardConProvider client:load />
 </MainLayout>

@@ -12,9 +12,13 @@ export default function TicketList() {
   // useEffect para cargar los datos en el montaje del componente
   useEffect(() => {
     const data = getStoredTickets();
-    setTickets(data);
+    const ordenados = [...data].sort(
+      (a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion)
+    );
+    setTickets(ordenados);
     setCargando(false);
   }, []);
+
 
   // Filtrado reactivo en tiempo real utilizando useState
   const ticketsFiltrados = tickets.filter((ticket) => {

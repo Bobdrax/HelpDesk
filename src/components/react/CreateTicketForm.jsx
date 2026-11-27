@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   getStoredTickets,
   saveStoredTickets,
@@ -6,9 +6,12 @@ import {
   TICKET_PRIORITIES,
   TICKET_CATEGORIES,
 } from '../../data/mockTickets.js';
+import { TicketsContext } from '../../context/TicketsContext.jsx';
+
 
 export default function CreateTicketForm() {
   // 1. Estados controlados mediante useState para cada campo del formulario
+  const { dispatch } = useContext(TicketsContext);
   const [solicitante, setSolicitante] = useState('');
   const [email, setEmail] = useState('');
   const [titulo, setTitulo] = useState('');
@@ -17,6 +20,7 @@ export default function CreateTicketForm() {
   const [prioridad, setPrioridad] = useState(TICKET_PRIORITIES.MEDIA);
   const [estado, setEstado] = useState(TICKET_STATUSES.PENDIENTE);
   const [fechaCreacion, setFechaCreacion] = useState('');
+ 
 
   // Estados de control de interfaz y validaciones
   const [errores, setErrores] = useState({});
@@ -88,6 +92,7 @@ export default function CreateTicketForm() {
 
     // Guardar nuevo ticket en la persistencia local simulada
     const listaActualizada = [nuevoTicket, ...ticketsExistentes];
+    dispatch({ type: 'AGREGAR_TICKET', payload: nuevoTicket });
     saveStoredTickets(listaActualizada);
 
     setEnviando(false);
