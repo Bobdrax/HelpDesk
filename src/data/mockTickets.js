@@ -94,39 +94,3 @@ export const INITIAL_TICKETS = [
     fechaCreacion: '2026-11-23',
   },
 ];
-
-const STORAGE_KEY = 'helpdesk_tickets_db';
-
-/**
- * Utilidad para obtener los tickets persistidos en localStorage
- * o los iniciales si es la primera vez que se carga en el navegador.
- */
-export function getStoredTickets() {
-  if (typeof window === 'undefined') {
-    return INITIAL_TICKETS;
-  }
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (!data) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_TICKETS));
-      return INITIAL_TICKETS;
-    }
-    return JSON.parse(data);
-  } catch (e) {
-    console.error('Error al leer de localStorage:', e);
-    return INITIAL_TICKETS;
-  }
-}
-
-/**
- * Utilidad para guardar la lista de tickets actualizada en el navegador.
- */
-export function saveStoredTickets(tickets) {
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tickets));
-    } catch (e) {
-      console.error('Error al guardar en localStorage:', e);
-    }
-  }
-}

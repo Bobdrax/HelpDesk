@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { TICKET_STATUSES } from '../../data/mockTickets.js';
 import { getTicketById, updateTicketStatus } from '../../services/ticketsService.js';
 
@@ -6,9 +6,17 @@ export default function TicketDetail({ ticketId }) {
   const [ticket, setTicket] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
+  const [errorActualizacion, setErrorActualizacion] = useState(null);
   const [nuevoEstado, setNuevoEstado] = useState('');
   const [actualizando, setActualizando] = useState(false);
   const [notificacion, setNotificacion] = useState(null);
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   // useEffect para consultar el ticket en Supabase
   useEffect(() => {
@@ -39,15 +47,20 @@ export default function TicketDetail({ ticketId }) {
     const estadoAnterior = nuevoEstado;
     setNuevoEstado(estadoActualizado);
     setActualizando(true);
+    setErrorActualizacion(null);
 
     try {
       const ticketActualizado = await updateTicketStatus(ticketId, estadoActualizado);
+      if (!ticketActualizado) {
+        throw new Error('No se recibió el ticket actualizado desde Supabase.');
+      }
       setTicket(ticketActualizado);
       setNotificacion(`Estado actualizado a "${estadoActualizado}"`);
-      setTimeout(() => setNotificacion(null), 3000);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => setNotificacion(null), 3000);
     } catch (err) {
       setNuevoEstado(estadoAnterior);
-      setError(err.message || 'No se pudo actualizar el estado.');
+      setErrorActualizacion(err.message || 'No se pudo actualizar el estado.');
     } finally {
       setActualizando(false);
     }
@@ -101,7 +114,7 @@ export default function TicketDetail({ ticketId }) {
       <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center max-w-xl mx-auto shadow-sm">
         <div className="w-16 h-16 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4">
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
         <h3 className="text-lg font-bold text-slate-800 mb-2">Ticket no encontrado</h3>
@@ -127,7 +140,7 @@ export default function TicketDetail({ ticketId }) {
           className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           <span>Volver al listado</span>
         </a>
@@ -138,6 +151,22 @@ export default function TicketDetail({ ticketId }) {
           </span>
         )}
       </div>
+
+      {errorActualizacion && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-xs flex items-center justify-between gap-3">
+          <span>
+            <strong>Error al actualizar estado:</strong> {errorActualizacion}
+          </span>
+          <button
+            type="button"
+            onClick={() => setErrorActualizacion(null)}
+            className="text-red-500 hover:text-red-700 font-bold"
+            aria-label="Cerrar error"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Tarjeta Principal de Detalle */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
@@ -234,7 +263,7 @@ export default function TicketDetail({ ticketId }) {
                     <span className="text-[11px] text-slate-400">{ticket.fechaCreacion}</span>
                   </div>
                   <p className="text-xs text-slate-600 mt-1">
-                    Ticket generado automáticamente con estado inicial "{ticket.estado}". Notificación enviada al solicitante.
+                    Ticket registrado el {ticket.fechaCreacion}. Estado actual en plataforma: "{ticket.estado}".
                   </p>
                 </div>
               </div>

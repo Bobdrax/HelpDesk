@@ -23,10 +23,11 @@ export default function CreateTicketForm() {
   const [mensajeExito, setMensajeExito] = useState(null);
   const [errorEnvio, setErrorEnvio] = useState(null);
 
-  // 2. useEffect para inicializar la fecha de creación con la fecha actual del sistema
+  // 2. useEffect para inicializar la fecha de creación con la fecha local del sistema
   useEffect(() => {
-    const hoy = new Date().toISOString().split('T')[0];
-    setFechaCreacion(hoy);
+    const hoy = new Date();
+    const fechaLocal = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+    setFechaCreacion(fechaLocal);
   }, []);
 
   // Validación básica de campos requeridos
@@ -37,6 +38,10 @@ export default function CreateTicketForm() {
       nuevosErrores.solicitante = 'El nombre del solicitante es obligatorio.';
     } else if (solicitante.trim().length < 3) {
       nuevosErrores.solicitante = 'El nombre debe contener al menos 3 caracteres.';
+    }
+
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      nuevosErrores.email = 'Ingresa un correo electrónico válido.';
     }
 
     if (!titulo.trim()) {
@@ -70,10 +75,18 @@ export default function CreateTicketForm() {
     setEnviando(true);
     setErrorEnvio(null);
 
+    const slugSolicitante = solicitante
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '.')
+      .replace(/^\.+|\.+$/g, '');
+
     try {
       const nuevoTicket = await createTicket({
         solicitante: solicitante.trim(),
-        email: email.trim() || `${solicitante.toLowerCase().replace(/\s+/g, '.')}@empresa.com`,
+        email: email.trim() || `${slugSolicitante || 'usuario'}@empresa.com`,
         titulo: titulo.trim(),
         descripcion: descripcion.trim(),
         categoria,
@@ -116,7 +129,7 @@ export default function CreateTicketForm() {
           <div className="flex items-center gap-3 text-emerald-800">
             <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-600">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
               </svg>
             </div>
             <div>
@@ -137,7 +150,7 @@ export default function CreateTicketForm() {
               aria-label="Cerrar notificación"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
@@ -189,8 +202,17 @@ export default function CreateTicketForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="laura.restrepo@empresa.com"
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                className={`w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 transition-all ${
+                  errores.email
+                    ? 'border-red-300 focus:ring-red-200 bg-red-50/30'
+                    : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+                }`}
               />
+              {errores.email && (
+                <p className="text-xs text-red-600 mt-1.5 flex items-center gap-1 font-medium">
+                  <span>⚠</span> {errores.email}
+                </p>
+              )}
             </div>
           </div>
 
@@ -308,8 +330,17 @@ export default function CreateTicketForm() {
                 type="date"
                 value={fechaCreacion}
                 onChange={(e) => setFechaCreacion(e.target.value)}
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                className={`w-full px-3 py-2.5 bg-slate-50 border rounded-xl text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 ${
+                  errores.fechaCreacion
+                    ? 'border-red-300 focus:ring-red-200 bg-red-50/30'
+                    : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+                }`}
               />
+              {errores.fechaCreacion && (
+                <p className="text-xs text-red-600 mt-1.5 flex items-center gap-1 font-medium">
+                  <span>⚠</span> {errores.fechaCreacion}
+                </p>
+              )}
             </div>
           </div>
 
@@ -324,10 +355,10 @@ export default function CreateTicketForm() {
             <button
               type="submit"
               disabled={enviando}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-md shadow-blue-500/20 hover:shadow-lg transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-md shadow-blue-500/20 hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
               </svg>
               <span>{enviando ? 'Guardando...' : 'Crear Ticket'}</span>
             </button>

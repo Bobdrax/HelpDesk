@@ -38,10 +38,10 @@ export default function TicketList() {
     const termino = busqueda.toLowerCase().trim();
     const coincideBusqueda =
       termino === '' ||
-      ticket.id.toLowerCase().includes(termino) ||
-      ticket.solicitante.toLowerCase().includes(termino) ||
-      ticket.titulo.toLowerCase().includes(termino) ||
-      ticket.descripcion.toLowerCase().includes(termino);
+      (ticket.id || '').toLowerCase().includes(termino) ||
+      (ticket.solicitante || '').toLowerCase().includes(termino) ||
+      (ticket.titulo || '').toLowerCase().includes(termino) ||
+      (ticket.descripcion || '').toLowerCase().includes(termino);
 
     // 2. Filtro por Estado
     const coincideEstado = filtroEstado === 'TODOS' || ticket.estado === filtroEstado;
@@ -110,7 +110,7 @@ export default function TicketList() {
           <div className="relative flex-1">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
             <input
@@ -126,7 +126,7 @@ export default function TicketList() {
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             )}
@@ -196,7 +196,7 @@ export default function TicketList() {
           <div className="py-16 text-center px-4">
             <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <h4 className="text-base font-bold text-slate-800 mb-1">No se encontraron tickets</h4>
