@@ -167,7 +167,6 @@ git branch -M main
 git push -u origin main
 ```
 
-## Integrante 2 — Katy Yulieth Hernández Lambraño
 
 ### 1. Implementación de Context API y useContext
 
