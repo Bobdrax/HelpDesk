@@ -1,5 +1,6 @@
 # HelpDesk - Sistema de Gestión de Solicitudes e Incidentes
 
+
 HelpDesk es una plataforma web desarrollada con **Astro**, **Tailwind CSS** y **ReactJS** para la gestión, registro y seguimiento centralizado de tickets e incidentes técnicos.
 
 ## Tecnologías Principales
@@ -7,6 +8,11 @@ HelpDesk es una plataforma web desarrollada con **Astro**, **Tailwind CSS** y **
 * **Tailwind CSS**: Estilos modernos utilitarios y diseño SaaS responsive.
 * **ReactJS**: Componentes interactivos con hidratación en cliente.
 * **React Hooks**: `useReducer` para la gestión centralizada del estado, `useContext` para el consumo del contexto global y `useEffect` para sincronización.
+
+  ## Demo
+
+Aplicación desplegada: https://help-desk-pearl-kappa.vercel.app/
+
 
 ## Estado del Proyecto
 
@@ -24,7 +30,7 @@ HelpDesk es una plataforma web desarrollada con **Astro**, **Tailwind CSS** y **
 - [x] Capa de servicios HTTP preparada con Axios
 - [x] Persistencia local de datos simulados
 - [x] Integración con el back-end (Supabase)
-- [ ] Despliegue en producción
+- [x]  Despliegue en producción
 
 
 ## Estructura del Proyecto
